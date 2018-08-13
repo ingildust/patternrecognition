@@ -14,7 +14,7 @@ public class Response {
 	
 	private EXIT_CODE esito;
 	private String descr;
-	private List<Object> result;
+	private List result;
 	
 	public Response(EXIT_CODE esito, String descr) {
 		super();
@@ -22,7 +22,7 @@ public class Response {
 		this.descr = descr;
 	}
 
-	public Response(List<Object> result) {
+	public Response(List result) {
 		super();
 		this.result = result;
 		this.esito= EXIT_CODE.OK;
