@@ -1,6 +1,5 @@
 package it.ingildust.recognition.controller;
 
-import java.awt.Point;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import io.swagger.annotations.ApiResponse;
+import it.ingildust.recognition.model.Line;
+import it.ingildust.recognition.model.Point;
 import it.ingildust.recognition.model.Response;
 import it.ingildust.recognition.service.RecognitionService;
 import lombok.extern.java.Log;
@@ -48,7 +49,7 @@ public class RestController {
 	
 
 	@RequestMapping(method = RequestMethod.DELETE, path = "/space", produces = "application/json")
-//	@ApiResponse(code = 200, message = "Success", response = String.class)
+	@ApiResponse(code = 200, message = "Success", response = String.class)
 	public @ResponseBody Response cleanSpace() {
 		
 		
@@ -62,7 +63,7 @@ public class RestController {
 	@ApiResponse(code = 200, message = "Success", response = String.class)
 	public @ResponseBody Response getLines() {
 		
-		List<List<Point>> lines = recognitionService.getLines();
+		List<Line> lines = recognitionService.getLines();
 
 		return new Response(lines);
 

@@ -1,7 +1,9 @@
 package it.ingildust.recognition.service;
 
-import java.awt.Point;
 import java.util.List;
+
+import it.ingildust.recognition.model.Line;
+import it.ingildust.recognition.model.Point;
 
 public interface RecognitionService {
 	
@@ -11,7 +13,7 @@ public interface RecognitionService {
 
 	List<Point> getSpace();
 
-	List<List<Point>> getLines();
+	List<Line> getLines();
 
 	
 
