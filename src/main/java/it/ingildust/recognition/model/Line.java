@@ -3,13 +3,18 @@ package it.ingildust.recognition.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlValue;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 public class Line {
+	
 	
 	private List<Point> points = new ArrayList<Point>();
 	
