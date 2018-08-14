@@ -9,15 +9,35 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-@Setter
 public class Line {
 	
 	private List<Point> points = new ArrayList<Point>();
 	
 	@JsonIgnore
-	double mx;
+	private double mx;
 	
 	@JsonIgnore
-	double q;
+	private double q;
+
+
+	public Line setMx(double mx) {
+		this.mx = mx;
+		return this;
+	}
+
+	public Line setQ(double q) {
+		this.q = q;
+		return this;
+	}
+	
+	public Line addPoint(Point p) {
+		points.add(p);
+		return this;
+	}
+	
+	public boolean equals(Object o) {
+		Line l = (Line) o;
+		return (mx == l.getMx() && q == l.getQ());
+	}
 
 }
