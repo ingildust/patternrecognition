@@ -97,6 +97,12 @@ public class RestController {
 		
 		try {
 			log.info("getLines "+n);
+			
+			if (n < 2) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body(new Response(EXIT_CODE.KO, "specificare n > 1"));
+			}
+			
 			List<Line> lines = recognitionService.getLines(n);
 			return ResponseEntity.ok(lines);
 		} catch (Exception e) {

@@ -15,7 +15,8 @@ import lombok.extern.java.Log;
 @Log
 public class RecognitionServiceImpl implements RecognitionService {
 
-	// il mio database
+	// il mio database, strutturato in questo modo potrebbe essere utilizzato 
+	// memcached / redis
 	Map<String, Line> lines = new HashMap<String, Line>();
 
 	@Override
@@ -36,24 +37,26 @@ public class RecognitionServiceImpl implements RecognitionService {
 		if (allpoints.contains(param))
 			throw new DuplicatePointException();
 
-		// caso T1, solo un punto presente, cerco una funzione non inizializzata (mx=0,
-		// q=0)
+		// caso T1, solo un punto presente, cerco una funzione non inizializzata (mx=nan,
+		// q=nan)
 		if (lines.containsKey(new Line().key())) {
 			Line notInit = lines.get(new Line().key());
 			lines.remove(notInit.key());
 			notInit.addPoint(param);
 			lines.put(notInit.key(), notInit);
+			// rimuovo la vecchia funzione e la reinserisco
+			// con le nuove caratteristiche
 			return;
 		}
 
 		// confronto il mio parametro con tutti i punti già presenti
 		for (Point p : allpoints) {
-			// calcolo f(x)=mx+q
-
+			// calcolo f(x)=mx+q, creando una nuova linea
 			Line newline = new Line().addPoint(param).addPoint(p);
 
 			// cerco se esiste una funzione con le stesse caratteristiche
 			if (lines.containsKey(newline.key())) {
+				// se esiste, aggiungo un punto alla linea
 				Line line = lines.get(newline.key());
 				if (!line.getPoints().contains(param)) {
 					line.addPoint(param);
@@ -73,19 +76,21 @@ public class RecognitionServiceImpl implements RecognitionService {
 		for (Line l : lines.values()) {
 			out.addAll(l.getPoints());
 		}
-
+		// filtro i risultati doppi
 		return out.stream().distinct().collect(Collectors.toList());
 
 	}
 
 	@Override
 	public List<Line> getLines(int n) {
+		// filtro la dimensione dei punti
 		return lines.values().stream().filter(l -> l.getPoints().size() >= n).collect(Collectors.toList());
 	}
 
 	@Override
 	public void cleanSpace() {
 		lines = null;
+		// flushall!
 		lines = new HashMap<String, Line>();
 	}
 
