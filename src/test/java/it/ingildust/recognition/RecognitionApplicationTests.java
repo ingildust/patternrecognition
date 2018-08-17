@@ -45,11 +45,40 @@ public class RecognitionApplicationTests {
 		
 		l = recognitionService.getLines(3);
 		assertTrue(l.size()==1);
+		
+		
+		recognitionService.addPoint(new Point(2,1));
+		p = recognitionService.getSpace();
+		assertTrue(p.size()==6);
+		
+		l = recognitionService.getLines(2);
+		assertTrue(l.size()==11);
+		
+		l = recognitionService.getLines(3);
+		assertTrue(l.size()==2);
+	}
+	
+	@Test
+	public void testPoints2() throws DuplicatePointException {
+		recognitionService.cleanSpace();
+		recognitionService.addPoint(new Point(1,3));
+		recognitionService.addPoint(new Point(4,5));
+		recognitionService.addPoint(new Point(5,8));
+		recognitionService.addPoint(new Point(8,4));
+		recognitionService.addPoint(new Point(5,-2));
+		recognitionService.addPoint(new Point(-3,3));
+		List<Point> p = recognitionService.getSpace();
+		assertTrue(p.size()==6);
+		
+		List<Line> l = recognitionService.getLines(2);
+		assertTrue(l.size()==15);
+		
+		l = recognitionService.getLines(3);
+		assertTrue(l.size()==0);
 	}
 	
 	@Test
 	public void testDeleteSet() throws DuplicatePointException {
-		testPoints();
 		recognitionService.cleanSpace();
 		List<Point> p = recognitionService.getSpace();
 		assertTrue(p.isEmpty());

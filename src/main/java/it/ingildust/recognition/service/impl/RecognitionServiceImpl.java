@@ -3,7 +3,6 @@ package it.ingildust.recognition.service.impl;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import it.ingildust.recognition.exception.DuplicatePointException;
@@ -15,9 +14,8 @@ import lombok.extern.java.Log;
 @Log
 public class RecognitionServiceImpl implements RecognitionService {
 
-	// il mio database, strutturato in questo modo potrebbe essere utilizzato 
-	// memcached / redis
-	Map<String, Line> lines = new HashMap<String, Line>();
+	// il mio database
+	List<Line> lines = new ArrayList<Line>();
 
 	@Override
 	public void addPoint(Point param) throws DuplicatePointException {
@@ -27,45 +25,55 @@ public class RecognitionServiceImpl implements RecognitionService {
 		// caso T0, aggiungo il punto
 		if (lines.isEmpty()) {
 			Line first = new Line().addPoint(param);
-			lines.put(first.key(), first);
+			lines.add(first);
 			return;
 		}
 
-		List<Point> allpoints = getSpace();
-		// se esiste un punto con le stesse coordinate, allora il punto non verra'
-		// aggiunto
-		if (allpoints.contains(param))
-			throw new DuplicatePointException();
-
-		// caso T1, solo un punto presente, cerco una funzione non inizializzata (mx=nan,
-		// q=nan)
-		if (lines.containsKey(new Line().key())) {
-			Line notInit = lines.get(new Line().key());
-			lines.remove(notInit.key());
+		// caso T1, solo un punto presente, cerco una funzione con un solo punto
+		if (lines.get(0).getPoints().size() == 1) {
+			Line notInit = lines.get(0);
+			if (notInit.getPoints().contains(param))
+				throw new DuplicatePointException();
 			notInit.addPoint(param);
-			lines.put(notInit.key(), notInit);
-			// rimuovo la vecchia funzione e la reinserisco
-			// con le nuove caratteristiche
 			return;
 		}
-
-		// confronto il mio parametro con tutti i punti già presenti
-		for (Point p : allpoints) {
-			// calcolo f(x)=mx+q, creando una nuova linea
-			Line newline = new Line().addPoint(param).addPoint(p);
-
-			// cerco se esiste una funzione con le stesse caratteristiche
-			if (lines.containsKey(newline.key())) {
-				// se esiste, aggiungo un punto alla linea
-				Line line = lines.get(newline.key());
-				if (!line.getPoints().contains(param)) {
-					line.addPoint(param);
-				}
-			} else {
-				// la mia funzione e' nuova, la aggiungo
-				lines.put(newline.key(), newline);
+		
+		// punti conosciuti
+		List<Point> knownPoints = new ArrayList<Point>();
+		// punti sconosciuti
+		List<Point> unknownPoints = new ArrayList<Point>();
+		
+		// scorro tutte le rette esistenti
+		for (Line l : lines) {		
+			// se il parametro appartiene alla retta, aggiungo il punto
+			if (l.isCollinear(param)) {
+				// se il mio punto e' gia' presenti, eccezione
+				if (l.getPoints().contains(param))
+					throw new DuplicatePointException();
+				// aggiungo tutti i punti della linea tra quelli conosciuti
+				knownPoints.addAll(l.getPoints());
+				// aggiungo il mio parametro alla retta
+				l.addPoint(param);
+			}else {
+				// aggiungo tutti i punti alla lista dei punti sconosciuti
+				unknownPoints.addAll(l.getPoints());
 			}
 		}
+		// rimuovo eventuali punti di intersezione con rette gia' elaborate
+		unknownPoints.removeAll(knownPoints);
+		// lista per controllo duplicati (e rollback)
+		List<Line> nuovelinee = new ArrayList<Line>();
+		// creo una nuova retta per ogni punto (univoco)
+		for (Point point : unknownPoints.stream().distinct().collect(Collectors.toList())) {
+			// se esiste gia' eccezione
+			if (point.equals(param))
+				throw new DuplicatePointException();
+			// creo la nuova retta
+			Line newline = new Line().addPoint(param).addPoint(point);
+			nuovelinee.add(newline);
+		}
+		// aggiungo tutte le rette
+		lines.addAll(nuovelinee);
 
 		log.info("end -> total lines in memory: " + lines.size());
 	}
@@ -73,7 +81,7 @@ public class RecognitionServiceImpl implements RecognitionService {
 	@Override
 	public List<Point> getSpace() {
 		List<Point> out = new ArrayList<Point>();
-		for (Line l : lines.values()) {
+		for (Line l : lines) {
 			out.addAll(l.getPoints());
 		}
 		// filtro i risultati doppi
@@ -84,14 +92,14 @@ public class RecognitionServiceImpl implements RecognitionService {
 	@Override
 	public List<Line> getLines(int n) {
 		// filtro la dimensione dei punti
-		return lines.values().stream().filter(l -> l.getPoints().size() >= n).collect(Collectors.toList());
+		return lines.stream().filter(l -> l.getPoints().size() >= n).collect(Collectors.toList());
 	}
 
 	@Override
 	public void cleanSpace() {
 		lines = null;
 		// flushall!
-		lines = new HashMap<String, Line>();
+		lines = new ArrayList<Line>();
 	}
 
 }
